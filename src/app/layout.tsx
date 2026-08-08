@@ -15,8 +15,8 @@ const fraunces = Fraunces({
 
 export const metadata: Metadata = {
   title: {
-    default: "Voxora AI",
-    template: "%s · Voxora AI",
+    default: "Agentel AI",
+    template: "%s · Agentel AI",
   },
   description:
     "Multi-tenant SaaS platform for AI voice agents and cloud telephony.",

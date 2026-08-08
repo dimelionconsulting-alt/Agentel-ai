@@ -1,4 +1,4 @@
-# Voxora AI
+# Agentel AI
 
 Multi-tenant SaaS platform for AI voice agents and cloud telephony.
 

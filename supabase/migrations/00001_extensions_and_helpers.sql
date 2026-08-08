@@ -1,4 +1,4 @@
--- Voxora AI — extensions and shared helpers
+-- Agentel AI — extensions and shared helpers
 create extension if not exists "pgcrypto";
 create extension if not exists "uuid-ossp";
 create extension if not exists "vector";

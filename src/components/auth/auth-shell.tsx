@@ -18,10 +18,10 @@ export function AuthShell({
         <div className="mb-8 text-center">
           <Link href="/" className="inline-flex items-center gap-2">
             <span className="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--color-accent)] text-sm font-bold text-white">
-              V
+              A
             </span>
             <span className="text-lg font-semibold tracking-tight text-[var(--color-ink)]">
-              Voxora AI
+              Agentel AI
             </span>
           </Link>
           <h1 className="mt-6 text-2xl font-semibold tracking-tight text-[var(--color-ink)]">

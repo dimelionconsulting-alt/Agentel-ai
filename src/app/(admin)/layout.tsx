@@ -22,7 +22,7 @@ export default async function AdminLayout({
       <div className="border-b border-white/10 px-6 py-4">
         <div className="mx-auto flex max-w-6xl items-center justify-between">
           <div>
-            <p className="text-sm font-semibold tracking-tight">Voxora Super Admin</p>
+            <p className="text-sm font-semibold tracking-tight">Agentel Super Admin</p>
             <p className="text-xs text-slate-400">
               Platform operations — never mix tenant private data in shared views
             </p>

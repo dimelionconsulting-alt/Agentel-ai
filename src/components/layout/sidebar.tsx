@@ -38,11 +38,11 @@ export function Sidebar({
           <div>
             <Link href="/dashboard" className="flex items-center gap-2">
               <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--color-accent)] text-sm font-bold text-white">
-                V
+                A
               </span>
               <div>
                 <div className="text-sm font-semibold tracking-tight text-[var(--color-ink)]">
-                  Voxora AI
+                  Agentel AI
                 </div>
                 <div className="text-xs text-[var(--color-ink-subtle)]">{organizationName}</div>
               </div>

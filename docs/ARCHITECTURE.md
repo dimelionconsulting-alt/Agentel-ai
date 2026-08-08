@@ -1,8 +1,8 @@
-# Voxora AI — Architecture
+# Agentel AI — Architecture
 
 ## Overview
 
-Voxora AI is a multi-tenant SaaS platform for AI voice agents and cloud telephony.
+Agentel AI is a multi-tenant SaaS platform for AI voice agents and cloud telephony.
 Businesses create AI agents that answer inbound calls, place outbound calls, book
 appointments, capture leads, transfer to humans, and integrate with business systems.
 

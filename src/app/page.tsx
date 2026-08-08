@@ -19,9 +19,9 @@ export default function HomePage() {
         <header className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-white/15 text-base font-bold backdrop-blur">
-              V
+              A
             </span>
-            <span className="text-lg font-semibold tracking-tight">Voxora AI</span>
+            <span className="text-lg font-semibold tracking-tight">Agentel AI</span>
           </div>
           <div className="flex items-center gap-3">
             <Link href="/login" className="text-sm font-medium text-white/85 hover:text-white">
@@ -37,7 +37,7 @@ export default function HomePage() {
           <p
             className="animate-fade-up font-[family-name:var(--font-fraunces)] text-5xl leading-[1.05] tracking-tight sm:text-6xl md:text-7xl"
           >
-            Voxora AI
+            Agentel AI
           </p>
           <h1 className="animate-fade-up delay-100 mt-5 max-w-2xl text-2xl font-medium tracking-tight text-white/95 sm:text-3xl">
             AI voice agents that answer, qualify, and book — on every call.

@@ -17,7 +17,7 @@ export default async function VerifyEmailPage({
   return (
     <AuthShell
       title="Check your inbox"
-      subtitle="Confirm your email to activate your Voxora AI workspace."
+      subtitle="Confirm your email to activate your Agentel AI workspace."
       footer={
         <Link href="/login" className="font-medium text-[var(--color-accent)]">
           Return to sign in

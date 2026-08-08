@@ -11,9 +11,9 @@ import type {
 
 const demoOrganization: Organization = {
   id: "00000000-0000-4000-8000-000000000001",
-  name: "Voxora Demo",
-  slug: "voxora-demo",
-  website: "https://voxora.ai",
+  name: "Agentel Demo",
+  slug: "agentel-demo",
+  website: "https://agentel.ai",
   industry: "Software",
   timezone: "UTC",
   logo_url: null,
@@ -33,7 +33,7 @@ export async function getAuthContext(): Promise<AuthContext> {
   if (isDemoMode()) {
     const user: AuthSessionUser = {
       id: "00000000-0000-4000-8000-000000000099",
-      email: "owner@voxora.demo",
+      email: "owner@agentel.demo",
       emailVerified: true,
       fullName: "Demo Owner",
       avatarUrl: null,
