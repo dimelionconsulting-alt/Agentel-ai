@@ -1,18 +1,26 @@
-import { ModulePlaceholder } from "@/components/shared/module-placeholder";
+import { OutboundCallForm } from "@/components/calls/outbound-call-form";
+import { PageHeader } from "@/components/shared/page-header";
+import { Card, CardContent } from "@/components/ui/card";
+import { requireAuthContext } from "@/lib/auth/session";
+import { listAgents } from "@/services/agents";
 
 export const metadata = { title: "Outbound calls" };
 
-export default function OutboundPage() {
+export default async function OutboundPage() {
+  const auth = await requireAuthContext();
+  const agents = await listAgents(auth.activeOrganization.organization.id);
+
   return (
-    <ModulePlaceholder
-      title="Outbound calls"
-      description="Launch AI-powered one-to-one outbound calls with purpose and optional instructions."
-      phase="Phase 3"
-      bullets={[
-        "Select agent, customer, number, and purpose",
-        "Logged into call history",
-        "Campaign architecture reserved; no bulk spam calling",
-      ]}
-    />
+    <div className="space-y-6">
+      <PageHeader
+        title="Outbound calls"
+        description="Launch one-to-one AI-powered outbound calls. Campaign bulk-dialing is intentionally not enabled."
+      />
+      <Card className="max-w-2xl">
+        <CardContent className="py-6">
+          <OutboundCallForm agents={agents} />
+        </CardContent>
+      </Card>
+    </div>
   );
 }

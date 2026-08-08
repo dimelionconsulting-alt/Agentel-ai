@@ -1,47 +1,23 @@
+import { AgentBuilder } from "@/components/agents/agent-builder";
 import { PageHeader } from "@/components/shared/page-header";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { requireAuthContext } from "@/lib/auth/session";
+import { listPhoneNumbers } from "@/services/phone-numbers";
 
 export const metadata = {
-  title: "Agent builder",
+  title: "Create agent",
 };
 
-const steps = [
-  "Agent identity",
-  "Voice and language",
-  "Agent instructions",
-  "Business knowledge",
-  "Tools and integrations",
-  "Telephone number",
-  "Test agent",
-  "Publish",
-];
+export default async function NewAgentPage() {
+  const auth = await requireAuthContext();
+  const phoneNumbers = await listPhoneNumbers(auth.activeOrganization.organization.id);
 
-export default function NewAgentPage() {
   return (
     <div className="space-y-6">
       <PageHeader
         title="AI Agent Builder"
-        description="Visual multi-step builder scaffold. Interactive configuration and browser test call arrive in Phase 2–3."
+        description="Configure identity, voice, instructions, tools, telephony, then test and publish."
       />
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {steps.map((step, index) => (
-          <Card key={step} className="metric-card" style={{ animationDelay: `${index * 50}ms` }}>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <Badge tone="info">Step {index + 1}</Badge>
-                {index === 0 ? <Badge tone="success">Ready</Badge> : <Badge>Planned</Badge>}
-              </div>
-              <CardTitle className="mt-3 text-base">{step}</CardTitle>
-            </CardHeader>
-            <CardContent className="text-sm text-[var(--color-ink-muted)]">
-              {index === 6
-                ? "Includes a browser-based Test Agent flow before assigning a phone number."
-                : "Configured against the agents schema and provider abstractions."}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <AgentBuilder phoneNumbers={phoneNumbers} />
     </div>
   );
 }

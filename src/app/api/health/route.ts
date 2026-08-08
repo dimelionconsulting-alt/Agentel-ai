@@ -6,7 +6,7 @@ export async function GET() {
   return NextResponse.json({
     ok: true,
     service: "agentel-ai",
-    phase: 1,
+    phase: 4,
     supabaseConfigured: isSupabaseConfigured(),
     timestamp: new Date().toISOString(),
   });

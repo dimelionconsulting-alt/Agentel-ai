@@ -4,20 +4,14 @@ Multi-tenant SaaS platform for AI voice agents and cloud telephony.
 
 Businesses create AI agents that answer inbound calls, place outbound calls, understand speech, book appointments, capture leads, transfer to humans, and connect to external systems.
 
-## Phase 1 (this PR)
+## Current delivery (Phases 1–4+)
 
-- Next.js App Router + TypeScript + Tailwind CSS project foundation
-- Supabase auth flows: sign up, sign in, forgot/reset password, email verification, logout
-- Organizations + roles (`owner`, `admin`, `agent_manager`, `viewer`)
-- Complete relational schema + RLS migrations
-- Dashboard shell with sidebar navigation for all primary modules
-- Provider abstractions:
-  - `TelephonyProvider` → `TwilioTelephonyProvider`
-  - `VoiceAIProvider` → `OpenAIVoiceProvider`
-  - `PaymentProvider` → `StripePaymentProvider`
-- Demo mode so the UI shell can be reviewed without live credentials
+- **Phase 1:** Auth, organizations/roles, schema + RLS, dashboard shell, provider abstractions
+- **Phase 2:** Agent CRUD + 8-step visual builder + browser Test Agent
+- **Phase 3:** Twilio inbound/outbound webhooks, Media Streams TwiML, OpenAI Realtime provider + standalone voice gateway (`npm run voice-gateway`)
+- **Phase 4+:** Call history/detail (transcripts/summaries), knowledge ingestion + chunking, integrations marketplace, analytics, Stripe billing scaffold, public REST API (`/api/v1/*`)
 
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the modular architecture and phased roadmap.
+See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and [docs/PHASES_2_4.md](docs/PHASES_2_4.md).
 
 ## Stack
 
@@ -61,11 +55,14 @@ SUPABASE_SERVICE_ROLE_KEY=...
 ## Scripts
 
 ```bash
-npm run dev        # local development
-npm run build      # production build
-npm run lint       # ESLint
-npm run typecheck  # TypeScript
+npm run dev            # Next.js app
+npm run voice-gateway  # Twilio ↔ OpenAI realtime bridge
+npm run build          # production build
+npm run lint           # ESLint
+npm run typecheck      # TypeScript
 ```
+
+Demo API key for `/api/v1/*` when demo mode is enabled: `demo_agentel_key`
 
 ## Project structure
 

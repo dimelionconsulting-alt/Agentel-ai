@@ -1,4 +1,4 @@
-import { createHmac, timingSafeEqual } from "crypto";
+import twilio from "twilio";
 
 import type {
   MediaStreamConfig,
@@ -18,60 +18,112 @@ export interface TwilioConfig {
   apiKeySecret?: string;
 }
 
-/**
- * First telephony implementation. Phase 3 will wire live Twilio REST + Media Streams.
- * This class keeps all Twilio-specific concerns behind TelephonyProvider.
- */
-export class TwilioTelephonyProvider implements TelephonyProvider {
-  readonly name = "twilio" as const;
-
-  constructor(private readonly config: TwilioConfig) {
-    if (!config.accountSid || !config.authToken) {
-      throw new Error("TwilioTelephonyProvider requires accountSid and authToken");
-    }
-  }
-
-  async searchAvailableNumbers(params: PurchaseNumberParams): Promise<PurchasedNumber[]> {
-    void params;
-    throw new Error("Twilio number search is implemented in Phase 3");
-  }
-
-  async purchaseNumber(params: PurchaseNumberParams): Promise<PurchasedNumber> {
-    void params;
-    throw new Error("Twilio number purchase is implemented in Phase 3");
-  }
-
-  async releaseNumber(providerSid: string): Promise<void> {
-    void providerSid;
-    throw new Error("Twilio number release is implemented in Phase 3");
-  }
-
-  async configureInboundWebhook(providerSid: string, webhookUrl: string): Promise<void> {
-    void providerSid;
-    void webhookUrl;
-    throw new Error("Twilio inbound webhook configuration is implemented in Phase 3");
-  }
-
-  async placeOutboundCall(
-    params: PlaceOutboundCallParams,
-  ): Promise<PlaceOutboundCallResult> {
-    void params;
-    throw new Error("Twilio outbound calling is implemented in Phase 3");
-  }
-
-  async sendSms(params: SendSmsParams): Promise<SendSmsResult> {
-    void params;
-    throw new Error("Twilio SMS is implemented in Phase 5/6");
-  }
-
-  buildMediaStreamInstructions(config: MediaStreamConfig): string {
-    const track = config.track ?? "both_tracks";
-    return `<?xml version="1.0" encoding="UTF-8"?>
+export function buildTwilioMediaStreamInstructions(config: MediaStreamConfig): string {
+  const track = config.track ?? "inbound_track";
+  return `<?xml version="1.0" encoding="UTF-8"?>
 <Response>
   <Connect>
     <Stream url="${config.streamUrl}" track="${track}" />
   </Connect>
 </Response>`;
+}
+
+export class TwilioTelephonyProvider implements TelephonyProvider {
+  readonly name = "twilio" as const;
+  private client: ReturnType<typeof twilio>;
+
+  constructor(private readonly config: TwilioConfig) {
+    if (!config.accountSid || !config.authToken) {
+      throw new Error("TwilioTelephonyProvider requires accountSid and authToken");
+    }
+    this.client = twilio(config.accountSid, config.authToken);
+  }
+
+  async searchAvailableNumbers(params: PurchaseNumberParams): Promise<PurchasedNumber[]> {
+    const numbers = await this.client
+      .availablePhoneNumbers(params.country)
+      .local.list({
+        areaCode: params.areaCode ? Number(params.areaCode) : undefined,
+        contains: params.contains,
+        voiceEnabled: true,
+        limit: 10,
+      });
+
+    return numbers.map((item) => ({
+      provider: "twilio" as const,
+      e164: item.phoneNumber,
+      providerSid: item.phoneNumber,
+      friendlyName: item.friendlyName,
+      capabilities: [
+        item.capabilities.voice ? "voice" : "",
+        item.capabilities.sms ? "sms" : "",
+      ].filter(Boolean),
+    }));
+  }
+
+  async purchaseNumber(params: PurchaseNumberParams): Promise<PurchasedNumber> {
+    const available = await this.searchAvailableNumbers(params);
+    const selected = available[0];
+    if (!selected) {
+      throw new Error("No phone numbers available for the requested criteria");
+    }
+
+    const purchased = await this.client.incomingPhoneNumbers.create({
+      phoneNumber: selected.e164,
+    });
+
+    return {
+      provider: "twilio",
+      e164: purchased.phoneNumber,
+      providerSid: purchased.sid,
+      friendlyName: purchased.friendlyName,
+      capabilities: ["voice", "sms"],
+    };
+  }
+
+  async releaseNumber(providerSid: string): Promise<void> {
+    await this.client.incomingPhoneNumbers(providerSid).remove();
+  }
+
+  async configureInboundWebhook(providerSid: string, webhookUrl: string): Promise<void> {
+    await this.client.incomingPhoneNumbers(providerSid).update({
+      voiceUrl: webhookUrl,
+      voiceMethod: "POST",
+    });
+  }
+
+  async placeOutboundCall(
+    params: PlaceOutboundCallParams,
+  ): Promise<PlaceOutboundCallResult> {
+    const call = await this.client.calls.create({
+      from: params.callerId || params.from,
+      to: params.to,
+      url: params.webhookUrl,
+      statusCallback: params.statusCallbackUrl,
+      statusCallbackEvent: ["initiated", "ringing", "answered", "completed"],
+    });
+
+    return {
+      providerCallSid: call.sid,
+      status: call.status,
+    };
+  }
+
+  async sendSms(params: SendSmsParams): Promise<SendSmsResult> {
+    const message = await this.client.messages.create({
+      from: params.from,
+      to: params.to,
+      body: params.body,
+    });
+
+    return {
+      providerMessageSid: message.sid,
+      status: message.status,
+    };
+  }
+
+  buildMediaStreamInstructions(config: MediaStreamConfig): string {
+    return buildTwilioMediaStreamInstructions(config);
   }
 
   verifyWebhookSignature(
@@ -79,21 +131,6 @@ export class TwilioTelephonyProvider implements TelephonyProvider {
     url: string,
     params: Record<string, string>,
   ): boolean {
-    const data = Object.keys(params)
-      .sort()
-      .reduce((acc, key) => `${acc}${key}${params[key]}`, url);
-
-    const expected = createHmac("sha1", this.config.authToken)
-      .update(Buffer.from(data, "utf-8"))
-      .digest("base64");
-
-    const expectedBuffer = Buffer.from(expected);
-    const signatureBuffer = Buffer.from(signature);
-
-    if (expectedBuffer.length !== signatureBuffer.length) {
-      return false;
-    }
-
-    return timingSafeEqual(expectedBuffer, signatureBuffer);
+    return twilio.validateRequest(this.config.authToken, signature, url, params);
   }
 }

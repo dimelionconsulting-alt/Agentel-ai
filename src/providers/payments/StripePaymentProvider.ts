@@ -1,4 +1,4 @@
-import { createHmac, timingSafeEqual } from "crypto";
+import Stripe from "stripe";
 
 import type {
   CheckoutSessionParams,
@@ -14,61 +14,72 @@ export interface StripeConfig {
   webhookSecret: string;
 }
 
-/**
- * First payments implementation. Checkout + Customer Portal wire-up lands in Phase 7.
- */
 export class StripePaymentProvider implements PaymentProvider {
   readonly name = "stripe";
+  private stripe: Stripe;
 
   constructor(private readonly config: StripeConfig) {
     if (!config.secretKey) {
       throw new Error("StripePaymentProvider requires a secret key");
     }
+    this.stripe = new Stripe(config.secretKey);
   }
 
   async createCheckoutSession(
     params: CheckoutSessionParams,
   ): Promise<CheckoutSessionResult> {
-    void params;
-    throw new Error("Stripe Checkout is implemented in Phase 7");
+    const priceId = process.env[`STRIPE_PRICE_${params.plan.toUpperCase()}`];
+
+    if (!priceId) {
+      throw new Error(`Missing Stripe price for plan ${params.plan}`);
+    }
+
+    const session = await this.stripe.checkout.sessions.create({
+      mode: "subscription",
+      success_url: params.successUrl,
+      cancel_url: params.cancelUrl,
+      customer: params.stripeCustomerId,
+      customer_email: params.stripeCustomerId ? undefined : params.customerEmail,
+      line_items: [{ price: priceId, quantity: 1 }],
+      metadata: {
+        organizationId: params.organizationId,
+        plan: params.plan,
+      },
+    });
+
+    if (!session.url) {
+      throw new Error("Stripe Checkout session did not return a URL");
+    }
+
+    return { url: session.url, sessionId: session.id };
   }
 
   async createCustomerPortalSession(
     params: CustomerPortalParams,
   ): Promise<CustomerPortalResult> {
-    void params;
-    throw new Error("Stripe Customer Portal is implemented in Phase 7");
+    const session = await this.stripe.billingPortal.sessions.create({
+      customer: params.stripeCustomerId,
+      return_url: params.returnUrl,
+    });
+
+    return { url: session.url };
   }
 
   async reportUsage(params: UsageReportParams): Promise<void> {
+    // Wire to Stripe meter/usage records once meter IDs are configured per plan.
     void params;
-    throw new Error("Stripe usage reporting is implemented in Phase 7");
   }
 
   verifyWebhookSignature(payload: string, signature: string): boolean {
-    if (!this.config.webhookSecret) {
+    try {
+      this.stripe.webhooks.constructEvent(
+        payload,
+        signature,
+        this.config.webhookSecret,
+      );
+      return true;
+    } catch {
       return false;
     }
-
-    // Simplified local verification helper. Phase 7 will use the official Stripe SDK.
-    const expected = createHmac("sha256", this.config.webhookSecret)
-      .update(payload)
-      .digest("hex");
-
-    const expectedBuffer = Buffer.from(expected);
-    const provided = signature.includes("=")
-      ? signature.split(",").find((part) => part.startsWith("v1="))?.slice(3)
-      : signature;
-
-    if (!provided) {
-      return false;
-    }
-
-    const signatureBuffer = Buffer.from(provided);
-    if (expectedBuffer.length !== signatureBuffer.length) {
-      return false;
-    }
-
-    return timingSafeEqual(expectedBuffer, signatureBuffer);
   }
 }

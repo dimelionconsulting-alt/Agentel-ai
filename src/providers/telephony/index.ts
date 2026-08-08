@@ -2,7 +2,11 @@ import { TwilioTelephonyProvider } from "./TwilioTelephonyProvider";
 import type { TelephonyProvider } from "./TelephonyProvider";
 
 export * from "./TelephonyProvider";
-export * from "./TwilioTelephonyProvider";
+export {
+  TwilioTelephonyProvider,
+  buildTwilioMediaStreamInstructions,
+} from "./TwilioTelephonyProvider";
+export type { TwilioConfig } from "./TwilioTelephonyProvider";
 export * from "./types";
 
 export function createTelephonyProvider(): TelephonyProvider {
